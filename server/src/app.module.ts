@@ -5,8 +5,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
-import { PriOpModule } from './pri-op/pri-op.module';
-import { PriOpService } from './pri-op/pri-op.service';
 
 @Module({
   imports: [
@@ -14,11 +12,11 @@ import { PriOpService } from './pri-op/pri-op.service';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       playground: true,
+      context: ({ req }) => ({ req }),
     }),
     AuthModule,
-    PriOpModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PriOpService],
+  providers: [AppService],
 })
 export class AppModule {}

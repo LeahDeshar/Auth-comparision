@@ -4,28 +4,49 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
+import { GqlContextType } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
+import { PriOpService } from 'src/pri-op/pri-op.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prisma: PriOpService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    console.log(context);
-    const token = request.headers['authorization']?.split(' ')[1];
-    // console.log('token', request.headers);
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = this.getRequest(context);
 
-    if (!token) throw new UnauthorizedException('Token not found');
+    const authHeader = request?.headers?.authorization;
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization header is missing');
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedException('Token is missing');
+    }
 
     try {
-      const decoded = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
+      const decoded = this.jwtService.verify(token);
+      request.user = await this.prisma.user.findUnique({
+        where: { id: decoded.sub },
       });
-      request.user = decoded;
-      return true;
+
+      return !!request.user;
     } catch (err) {
       throw new UnauthorizedException('Invalid token');
     }
+  }
+
+  private getRequest(context: ExecutionContext) {
+    if (context.getType() === 'http') {
+      return context.switchToHttp().getRequest();
+    } else if (context.getType<GqlContextType>() === 'graphql') {
+      const gqlContext = context.getArgs()[2];
+      return gqlContext.req;
+    }
+    return null;
   }
 }

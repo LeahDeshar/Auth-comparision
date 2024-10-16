@@ -1,14 +1,19 @@
 import { UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { JwtAuthGuard } from './jwt-auth/jwt-auth.guard';
+
+import { AuthGuard } from './auth.guard';
 
 @Resolver()
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
+
   @Query(() => String)
-  hello() {
-    return 'Hello, world!';
+  @UseGuards(AuthGuard)
+  hello(_, __, context) {
+    const user = context.req.user;
+
+    return `Hello, ${user?.name}!`;
   }
   @Mutation(() => String)
   async signup(
@@ -30,8 +35,8 @@ export class AuthResolver {
   }
 
   @Query(() => String)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard)
   async protectedResource() {
-    return 'This is a protected resource';
+    return 'You can use this  protected resource';
   }
 }

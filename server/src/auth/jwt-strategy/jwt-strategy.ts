@@ -1,25 +1,26 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
-import { AuthService } from '../auth.service';
-import { UnauthorizedException } from '@nestjs/common';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { PriOpService } from 'src/pri-op/pri-op.service';
 
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private authService: AuthService) {
+  constructor(private readonly prisma: PriOpService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: 'your_secret_key',
+      secretOrKey: 'your_secret_key', 
     });
   }
 
   async validate(payload: any) {
-    console.log('payload', payload);
-    const user = await this.authService.validateUserByJwt(payload);
-    console.log(user);
-    // if (!user) {
-    //   throw new UnauthorizedException('Invalid token');
-    // }
-    // return user;
-    return {};
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+    });
+
+    console.log("jwt strategy",user);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return user;
   }
 }
