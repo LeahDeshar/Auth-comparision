@@ -11,6 +11,13 @@ DATABASE_URL="postgresql://USERNAME:PASSWORD@localhost:5432/expense-tracker"
 Update the Prisma schema file
 npx prisma migrate dev --name init
 npx prisma generate
+create prisma services
+
+nest generate module prisma
+nest generate service prisma
+nest generate module auth
+nest generate service auth
+nest generate resolver auth
 
 ### Set Up GraphQL in NestJS
 
