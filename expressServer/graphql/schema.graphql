@@ -3,8 +3,22 @@ type User {
   email: String!
   name: String!
   role: Role!
+  profilePicId: CloudinaryImage
+  posts: [Post]
+}
+type CloudinaryImage {
+  id: ID!
+  url: String!
+  user: User
 }
 
+type Post {
+  id: ID!
+  title: String!
+  content: String!
+  postImage: CloudinaryImage
+  author: User
+}
 enum Role {
   USER
   ADMIN
@@ -12,8 +26,17 @@ enum Role {
 
 type Query {
   me: User
+  images: CloudinaryImage
+  post: Post
 }
+scalar Upload
 
+type Mutation {
+  uploadUserProfilePic(file: Upload!, userId: Int!): String
+  uploadPostImage(file: Upload!, postId: Int!): String
+  login(email: String!, password: String!): String
+  register(email: String!, password: String!, name: String!): String
+}
 # type Mutation {
 #   login(email: String!, password: String!): String
 #   register(email: String!, password: String!, name: String!): String
