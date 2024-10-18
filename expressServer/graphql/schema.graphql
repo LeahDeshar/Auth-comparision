@@ -34,8 +34,13 @@ scalar Upload
 type Mutation {
   uploadUserProfilePic(file: Upload!, userId: Int!): String
   uploadPostImage(file: Upload!, postId: Int!): String
-  login(email: String!, password: String!): String
-  register(email: String!, password: String!, name: String!): String
+  createPost(
+    title: String!
+    content: String!
+    postImage: Upload
+
+  )
+ 
 }
 # type Mutation {
 #   login(email: String!, password: String!): String

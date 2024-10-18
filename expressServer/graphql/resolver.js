@@ -39,11 +39,9 @@ export const resolvers = {
   },
   Mutation: {
     async uploadUserProfilePic(parent, { file, userId }, context) {
-      console.log("upload");
       const { createReadStream, filename } = await file;
       const stream = createReadStream();
 
-      console.log("success 1");
       let resultUrl = "";
       let resultSecureUrl = "";
       const cloudinaryResponse = await new Promise((resolve, reject) => {
@@ -65,16 +63,13 @@ export const resolvers = {
       console.log("success 2");
       console.log(cloudinaryResponse);
 
-      // Save image metadata in Prisma
       const cloudinaryImage = await prisma.cloudinaryImage.create({
         data: {
           url: cloudinaryResponse,
           user: { connect: { id: userId } },
         },
       });
-      console.log("success 3");
 
-      // Update the user's profilePicId
       await prisma.user.update({
         where: { id: userId },
         data: { profilePicId: cloudinaryImage.id },
@@ -115,19 +110,19 @@ export const resolvers = {
       return cloudinaryImage.url;
     },
 
-    login: async ({ email, password }) => {
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (!user) {
-        throw new Error("No such user found");
-      }
+    // login: async ({ email, password }) => {
+    //   const user = await prisma.user.findUnique({ where: { email } });
+    //   if (!user) {
+    //     throw new Error("No such user found");
+    //   }
 
-      const valid = await bcrypt.compare(password, user.password);
-      if (!valid) {
-        throw new Error("Invalid password");
-      }
+    //   const valid = await bcrypt.compare(password, user.password);
+    //   if (!valid) {
+    //     throw new Error("Invalid password");
+    //   }
 
-      const token = jwt.sign({ userId: user.id, role: user.role }, SECRET_KEY);
-      return { token, user };
-    },
+    //   const token = jwt.sign({ userId: user.id, role: user.role }, SECRET_KEY);
+    //   return { token, user };
+    // },
   },
 };
